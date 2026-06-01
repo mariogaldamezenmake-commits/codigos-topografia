@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0f766e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Códigos">
+<title>Códigos topográficos</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #0b1120; --card: #111c30; --card2: #16243d;
+    --accent: #14b8a6; --accent-dim: #0f766e;
+    --text: #e8eef6; --muted: #93a4bd; --line: #1f3050;
+  }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { min-height: 100vh; display: flex; flex-direction: column; }
+  header {
+    position: sticky; top: 0; z-index: 10; background: var(--bg);
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0)) 16px;
+    padding-top: calc(14px + env(safe-area-inset-top, 0));
+    border-bottom: 1px solid var(--line);
+  }
+  h1 { font-size: 17px; margin: 0 0 10px 0; font-weight: 600; letter-spacing: .2px; }
+  h1 span { color: var(--muted); font-weight: 400; }
+  .searchbox { position: relative; }
+  #q {
+    width: 100%; font-size: 17px; padding: 14px 44px 14px 16px; border-radius: 14px;
+    border: 1px solid var(--line); background: var(--card); color: var(--text);
+    outline: none;
+  }
+  #q:focus { border-color: var(--accent); }
+  #clear {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    width: 30px; height: 30px; border: 0; border-radius: 50%; background: var(--card2);
+    color: var(--muted); font-size: 18px; cursor: pointer; display: none;
+  }
+  main { flex: 1; padding: 12px 16px 40px 16px; }
+  .hint { color: var(--muted); font-size: 14px; text-align: center; margin-top: 40px; line-height: 1.6; }
+  .hint code { background: var(--card); padding: 2px 7px; border-radius: 6px; color: var(--accent); }
+  .count { color: var(--muted); font-size: 13px; margin: 4px 2px 12px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 14px 16px; margin-bottom: 10px;
+  }
+  .card.top { border-color: var(--accent-dim); background: var(--card2); }
+  .row1 { display: flex; align-items: baseline; gap: 12px; }
+  .code {
+    font-size: 22px; font-weight: 700; color: var(--accent);
+    min-width: 52px; font-variant-numeric: tabular-nums;
+  }
+  .desc { font-size: 17px; font-weight: 600; line-height: 1.25; }
+  .capa { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .sins { color: var(--muted); font-size: 13px; margin-top: 8px; line-height: 1.5; }
+  .sins b { color: #b9c6da; font-weight: 500; }
+  mark { background: transparent; color: var(--accent); font-weight: 700; }
+  .nores { text-align: center; color: var(--muted); margin-top: 36px; font-size: 15px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Códigos topográficos <span>· Global Mediterránea</span></h1>
+  <div class="searchbox">
+    <input id="q" type="text" inputmode="search" autocomplete="off" autocorrect="off"
+           autocapitalize="none" spellcheck="false" placeholder="farola, tapa de gas, 13…">
+    <button id="clear" aria-label="Borrar">&times;</button>
+  </div>
+</header>
+<main id="out"></main>
+
+<script>
+const DATA = [{"codigo": 1, "descripcion": "Pto. Fachada", "capa": "(1) ROJO", "sinonimos": ["fachada", "pared edificio", "esquina edificio", "frente edificio", "punto fachada"]}, {"codigo": 2, "descripcion": "Pto. Acera ó Bordillo", "capa": "(2) AMARILLO", "sinonimos": ["bordillo", "acera", "borde", "encintado", "acerado", "borde acera"]}, {"codigo": 3, "descripcion": "Pozo de saneamiento", "capa": "(5) AZUL", "sinonimos": ["pozo", "alcantarilla", "pozo registro", "registro saneamiento", "alcantarillado", "tapa saneamiento", "tapa alcantarilla", "saneamiento"]}, {"codigo": 4, "descripcion": "Reg. Agua potable", "capa": "140", "sinonimos": ["tapa agua", "arqueta agua", "registro agua", "agua potable", "contador agua", "llave agua", "tapa agua potable"]}, {"codigo": 5, "descripcion": "Reg. Red eléctrica", "capa": "(2) AMARILLO", "sinonimos": ["tapa luz", "arqueta eléctrica", "arqueta luz", "registro luz", "eléctrica", "registro eléctrico", "tapa eléctrica", "endesa"]}, {"codigo": 6, "descripcion": "Reg. Semáforo", "capa": "20", "sinonimos": ["arqueta semáforo", "registro semáforo", "semáforo tapa"]}, {"codigo": 7, "descripcion": "Reg. Telefónica", "capa": "210", "sinonimos": ["arqueta teléfono", "telefónica", "tapa teléfono", "registro teléfono", "telecomunicaciones", "movistar", "tapa telefónica"]}, {"codigo": 8, "descripcion": "Reg. Gas", "capa": "42", "sinonimos": ["tapa gas", "arqueta gas", "registro gas", "llave gas", "tapa de gas"]}, {"codigo": 9, "descripcion": "Alcorque (sin arbol)", "capa": "126", "sinonimos": ["alcorque vacío", "alcorque sin árbol", "alcorque", "hueco árbol"]}, {"codigo": 10, "descripcion": "Boca de riego", "capa": "(4) CIANO", "sinonimos": ["boca riego", "hidrante riego", "grifo riego", "grifo calle", "boca de agua"]}, {"codigo": 11, "descripcion": "Imbornal", "capa": "(4) CIANO", "sinonimos": ["imbornal", "sumidero calle", "rejilla calle", "desagüe calle", "tragante", "tragadera", "rejilla pluvial", "rejilla saneamiento"]}, {"codigo": 12, "descripcion": "Semáforo (suspendido)", "capa": "20", "sinonimos": ["semáforo colgante", "semáforo aéreo", "semáforo suspendido", "semáforo suelto"]}, {"codigo": 13, "descripcion": "Farola (de pie)", "capa": "(2) AMARILLO", "sinonimos": ["farola", "lámpara", "luminaria", "alumbrado", "farol", "poste luz", "alumbrado público", "punto luz", "farola pie", "lampara"]}, {"codigo": 14, "descripcion": "Cabina telefónica", "capa": "210", "sinonimos": ["cabina", "teléfono público", "cabina teléfono", "cabina telefónica"]}, {"codigo": 15, "descripcion": "Semáforo (poste)", "capa": "20", "sinonimos": ["semáforo", "semáforo poste", "semáforo suelo", "semáforo de pie"]}, {"codigo": 16, "descripcion": "Poste conducción (madera)", "capa": "216", "sinonimos": ["poste madera", "poste", "poste eléctrico", "poste línea", "mástil madera", "poste conducción", "poste telefónico"]}, {"codigo": 17, "descripcion": "Fuente", "capa": "(4) CIANO", "sinonimos": ["fuente", "fuente pública", "surtidor agua", "agua pública", "manantial"]}, {"codigo": 18, "descripcion": "Buzón", "capa": "(2) AMARILLO", "sinonimos": ["buzón", "buzón correo", "correos", "buzon"]}, {"codigo": 19, "descripcion": "Señal vertical", "capa": "(2) AMARILLO", "sinonimos": ["señal", "señal tráfico", "señal vertical", "señalización vertical", "señal vial", "señal de tráfico"]}, {"codigo": 20, "descripcion": "Banco (parque)", "capa": "(2) AMARILLO", "sinonimos": ["banco", "asiento", "mobiliario urbano", "banco parque", "banca"]}, {"codigo": 21, "descripcion": "Surtidor de gasolinera", "capa": "(2) AMARILLO", "sinonimos": ["gasolinera", "surtidor", "gasolina", "surtidor gasolina", "repostaje", "estación servicio", "bomba gasolina"]}, {"codigo": 22, "descripcion": "Monumento", "capa": "(2) AMARILLO", "sinonimos": ["estatua", "monumento", "escultura", "busto"]}, {"codigo": 23, "descripcion": "Boca de incendios", "capa": "(4) CIANO", "sinonimos": ["hidrante", "boca incendios", "boca incendio", "BIE", "hidrante incendio", "boca contraincendios", "hidrante contraincendios"]}, {"codigo": 24, "descripcion": "Farola (pared)", "capa": "(2) AMARILLO", "sinonimos": ["farola pared", "aplique pared", "luminaria pared", "farola mural", "alumbrado pared", "lámpara pared"]}, {"codigo": 25, "descripcion": "Sumidero", "capa": "(4) CIANO", "sinonimos": ["sumidero", "desagüe", "sumidero suelo"]}, {"codigo": 26, "descripcion": "Registro indeterminado", "capa": "140", "sinonimos": ["arqueta desconocida", "tapa desconocida", "registro raro", "arqueta indeterminada", "tapa indeterminada", "arqueta no identificada"]}, {"codigo": 27, "descripcion": "Torre eléctrica", "capa": "(2) AMARILLO", "sinonimos": ["torre", "torre alta tensión", "alta tensión", "torre eléctrica", "pilón", "torre AT"]}, {"codigo": 28, "descripcion": "Pozo (agua potable)", "capa": "140", "sinonimos": ["pozo agua", "pozo potable", "captación agua", "pozo de agua", "agua potable pozo"]}, {"codigo": 29, "descripcion": "Cota de nivel", "capa": "140", "sinonimos": ["cota", "cota nivel", "altura", "altimetría", "cota de altura"]}, {"codigo": 30, "descripcion": "Arbol aislado", "capa": "100", "sinonimos": ["árbol", "árbol solo", "árbol suelto", "vegetación", "árbol aislado", "arbol"]}, {"codigo": 31, "descripcion": "Palmera", "capa": "100", "sinonimos": ["palmera", "palmeras"]}, {"codigo": 32, "descripcion": "Alcorque (con arbol)", "capa": "100", "sinonimos": ["alcorque árbol", "alcorque con árbol", "alcorque", "árbol calle", "árbol acera", "arbolado"]}, {"codigo": 33, "descripcion": "Pozo saneamiento (oculto)", "capa": "AZUL", "sinonimos": ["pozo oculto", "pozo enterrado", "pozo tapado", "saneamiento oculto", "pozo bajo tierra"]}, {"codigo": 34, "descripcion": "Contenedor de basuras", "capa": "(2) AMARILLO", "sinonimos": ["contenedor", "contenedor basura", "contenedor gris", "basura", "contenedor orgánico", "contenedor restos", "contenedor general"]}, {"codigo": 35, "descripcion": "Contenedor de vidrio", "capa": "(2) AMARILLO", "sinonimos": ["vidrio", "contenedor vidrio", "contenedor verde", "iglú vidrio"]}, {"codigo": 36, "descripcion": "Contenedor de papel", "capa": "(2) AMARILLO", "sinonimos": ["papel", "contenedor papel", "contenedor azul", "cartón", "contenedor cartón"]}, {"codigo": 37, "descripcion": "Papelera", "capa": "(2) AMARILLO", "sinonimos": ["papelera", "papelera calle", "papelera pública"]}, {"codigo": 38, "descripcion": "Entrada metro", "capa": "(2) AMARILLO", "sinonimos": ["metro", "boca metro", "entrada metro", "acceso metro", "escalera metro"]}, {"codigo": 39, "descripcion": "Vértice RTM de bases de replanteo", "capa": "(2) AMARILLO", "sinonimos": ["vértice", "base replanteo", "RTM", "replanteo", "vértice geodésico", "hito geodésico", "base topográfica"]}, {"codigo": 40, "descripcion": "Vado (símbolo)", "capa": "(2) AMARILLO", "sinonimos": ["vado", "vado vehículos", "badén", "paso vehículos", "vado permanente", "rebaje acera"]}, {"codigo": 41, "descripcion": "Bolardo", "capa": "(2) AMARILLO", "sinonimos": ["bolardo", "pilón", "pivote", "pilona", "miniobstáculo", "pivot calle"]}, {"codigo": 42, "descripcion": "Cartel publicitario", "capa": "(2) AMARILLO", "sinonimos": ["cartel", "valla publicitaria", "publicidad", "anuncio", "valla anuncio", "cartel publicitario"]}, {"codigo": 43, "descripcion": "Reg. operadora de cable", "capa": "(2) AMARILLO", "sinonimos": ["arqueta cable", "registro cable", "ono", "telefónica cable", "fibra óptica", "cable", "operadora cable", "vodafone arqueta"]}, {"codigo": 44, "descripcion": "Pto. Ancho de vado", "capa": "(2) AMARILLO", "sinonimos": ["ancho vado", "vado ancho", "punto ancho vado"]}, {"codigo": 45, "descripcion": "Contenedor de plásticos", "capa": "(2) AMARILLO", "sinonimos": ["plástico", "contenedor plástico", "contenedor amarillo", "envases", "contenedor envases"]}, {"codigo": 46, "descripcion": "Pie de talud", "capa": "(3) VERDE", "sinonimos": ["pie talud", "base talud", "parte baja talud", "pie de talud"]}, {"codigo": 47, "descripcion": "Cabeza de talud", "capa": "62", "sinonimos": ["cabeza talud", "parte alta talud", "coronación talud", "alto talud", "cabeza de talud"]}, {"codigo": 48, "descripcion": "Acequia tierra", "capa": "(4) CIANO", "sinonimos": ["acequia tierra", "acequia", "regato tierra", "canal tierra", "zanja agua tierra"]}, {"codigo": 49, "descripcion": "Acequia obra", "capa": "(4) CIANO", "sinonimos": ["acequia obra", "canal obra", "acequia hormigón", "acequia construida"]}, {"codigo": 50, "descripcion": "División parcela", "capa": "(7) BLANCO", "sinonimos": ["linde", "lindero", "división parcela", "parcela", "límite parcela", "límite finca"]}, {"codigo": 51, "descripcion": "Mojón", "capa": "20", "sinonimos": ["mojón", "hito", "marca", "mojón kilométrico", "kilométrico", "hito kilométrico"]}, {"codigo": 52, "descripcion": "Curva directora o maestra", "capa": "64", "sinonimos": ["curva maestra", "maestra", "curva directora", "isoclina maestra", "directora"]}, {"codigo": 53, "descripcion": "Curva de nivel", "capa": "62", "sinonimos": ["curva", "curva nivel", "isolínea", "isoclina", "curva de nivel"]}, {"codigo": 54, "descripcion": "Escalera de peldaños", "capa": "(2) AMARILLO", "sinonimos": ["escalera", "peldaño", "escalón", "escalones", "escalera obra", "escaleras"]}, {"codigo": 55, "descripcion": "Línea de Muro", "capa": "(5) AZUL", "sinonimos": ["muro", "línea muro", "pared", "paredón", "muro contención", "linea muro"]}, {"codigo": 56, "descripcion": "Valla metálica", "capa": "(6) MAGENTA", "sinonimos": ["valla", "valla metálica", "reja", "verja", "cerramiento metálico", "alambrada"]}, {"codigo": 57, "descripcion": "Hornacinas", "capa": "(2) AMARILLO", "sinonimos": ["hornacina", "hornacinas", "nicho", "hueco pared"]}, {"codigo": 58, "descripcion": "Línea de pintura", "capa": "9", "sinonimos": ["pintura", "línea pintura", "marca vial", "señalización horizontal", "pintura suelo", "señal horizontal"]}, {"codigo": 59, "descripcion": "Línea de hormigón", "capa": "252", "sinonimos": ["hormigón", "línea hormigón", "encintado hormigón", "rigola hormigón"]}, {"codigo": 60, "descripcion": "Puntos de luz suelo", "capa": "(2) AMARILLO", "sinonimos": ["luz suelo", "baliza suelo", "foco suelo", "luminaria empotrada", "punto luz suelo", "iluminación suelo"]}, {"codigo": 61, "descripcion": "Pilares", "capa": "(7) BLANCO", "sinonimos": ["pilar", "pilares", "columna", "columnas", "puntal"]}, {"codigo": 62, "descripcion": "Piscina", "capa": "(4) CIANO", "sinonimos": ["piscina", "alberca"]}, {"codigo": 63, "descripcion": "Balsa regadio", "capa": "(4) CIANO", "sinonimos": ["balsa", "balsa riego", "balsa regadío", "alberca regadío", "estanque riego"]}, {"codigo": 64, "descripcion": "Camino asfaltado", "capa": "(2) AMARILLO", "sinonimos": ["camino asfaltado", "camino", "asfalto", "vía asfaltada", "pista asfaltada"]}, {"codigo": 65, "descripcion": "Camino tierra", "capa": "(2) AMARILLO", "sinonimos": ["camino tierra", "sendero", "pista", "vial tierra", "pista tierra", "camino"]}, {"codigo": 67, "descripcion": "Registro de Saneamiento/Domicialiario.", "capa": "(5) AZUL", "sinonimos": ["registro saneamiento domiciliario", "registro domiciliario", "tapa saneamiento casa", "acometida saneamiento", "saneamiento domiciliario"]}, {"codigo": 69, "descripcion": "Linea de Agua.", "capa": "(132) CIANO", "sinonimos": ["línea agua", "tubería agua", "conducción agua", "tubería de agua"]}, {"codigo": 81, "descripcion": "Conduccion suelo Electricidad", "capa": "", "sinonimos": ["conducción eléctrica suelo", "cable enterrado", "electricidad enterrada", "línea eléctrica enterrada", "conducción suelo electricidad"]}, {"codigo": 101, "descripcion": "fachada superior", "capa": "", "sinonimos": ["fachada superior", "fachada arriba", "parte alta fachada", "fachada planta alta"]}, {"codigo": 102, "descripcion": "Pto. Fachada", "capa": "", "sinonimos": ["fachada", "punto fachada", "fachada planta baja"]}, {"codigo": 201, "descripcion": "Pto. Acera ó Bordillo superior", "capa": "", "sinonimos": ["bordillo superior", "bordillo arriba", "acera arriba", "borde superior"]}, {"codigo": 202, "descripcion": "Pto. Acera ó Bordillo", "capa": "", "sinonimos": ["bordillo", "acera", "borde", "encintado planta baja"]}, {"codigo": 510, "descripcion": "Diana", "capa": "", "sinonimos": ["diana", "marca escáner", "diana escáner", "target", "diana láser"]}, {"codigo": 511, "descripcion": "Bolas Escaner", "capa": "", "sinonimos": ["bolas", "esferas", "esfera escáner", "target esfera", "bolas escáner", "esfera láser"]}, {"codigo": 551, "descripcion": "Línea de Muro Superior", "capa": "(161) AZUL", "sinonimos": ["muro superior", "parte alta muro", "línea muro superior", "muro arriba"]}, {"codigo": 561, "descripcion": "Valla metálica Superior", "capa": "", "sinonimos": ["valla superior", "parte alta valla", "valla arriba", "valla metálica arriba"]}];
+
+function normalize(s){
+  s = (s||"").toLowerCase();
+  s = s.normalize("NFD").replace(/[̀-ͯ]/g, "");
+  s = s.replace(/[^a-z0-9\s]/g, " ");
+  s = s.replace(/\s+/g, " ").trim();
+  return s;
+}
+
+DATA.forEach(c => {
+  c._desc = normalize(c.descripcion);
+  c._sins = (c.sinonimos||[]).map(normalize);
+  const toks = new Set();
+  [c._desc, ...c._sins].forEach(t => t.split(" ").forEach(w => { if(w) toks.add(w); }));
+  c._tokens = toks;
+});
+
+function search(query, limit=8){
+  const q = normalize(query);
+  if(!q) return [];
+  if(/^\d+$/.test(q)){
+    const n = parseInt(q,10);
+    const hit = DATA.filter(c => c.codigo === n);
+    return hit.map(c => [0,c]);
+  }
+  const qtoks = q.split(" ");
+  const scored = [];
+  for(const c of DATA){
+    let score = 999;
+    if(c._desc === q) score = 1;
+    else if(c._sins.includes(q)) score = 2;
+    else if(c._desc.startsWith(q)) score = 10;
+    else if(c._sins.some(s => s.startsWith(q))) score = 11;
+    else if(c._desc.includes(q)) score = 20;
+    else if(c._sins.some(s => s.includes(q))) score = 21;
+    else {
+      const common = qtoks.filter(t => c._tokens.has(t)).length;
+      if(common) score = 100 - common;
+      else if(qtoks.some(qt => [...c._tokens].some(t => t.startsWith(qt)))) score = 200;
+    }
+    if(score < 999) scored.push([score, c]);
+  }
+  scored.sort((a,b) => a[0]-b[0] || a[1].codigo-b[1].codigo);
+  return scored.slice(0, limit);
+}
+
+function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function highlight(text, q){
+  const nq = normalize(q);
+  if(!nq) return esc(text);
+  let html = esc(text);
+  for(const w of nq.split(" ")){
+    if(w.length < 2) continue;
+    const re = new RegExp("("+w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")", "gi");
+    html = html.replace(re, "<mark>$1</mark>");
+  }
+  return html;
+}
+
+function render(q, hits){
+  const out = document.getElementById("out");
+  if(!q){
+    out.innerHTML = '<div class="hint">Escribe el nombre de un elemento'
+      + '<br>(<code>farola</code>, <code>bordillo</code>, <code>tapa de gas</code>)'
+      + '<br>o el número del código (<code>13</code>).</div>';
+    return;
+  }
+  if(!hits.length){
+    out.innerHTML = '<div class="nores">No encontré nada para <b>'+esc(q)+'</b>.'
+      + '<br>Prueba con otra palabra o un número.</div>';
+    return;
+  }
+  let html = '<div class="count">'+hits.length+' resultado'+(hits.length>1?'s':'')+'</div>';
+  hits.forEach(([score, c], i) => {
+    const sins = (c.sinonimos||[]).slice(0,6).join(", ");
+    html += '<div class="card'+(i===0?' top':'')+'">'
+      + '<div class="row1"><div class="code">'+c.codigo+'</div>'
+      + '<div class="desc">'+highlight(c.descripcion, q)+'</div></div>'
+      + (c.capa ? '<div class="capa">Capa: '+esc(c.capa)+'</div>' : '')
+      + (sins ? '<div class="sins"><b>Otros nombres:</b> '+highlight(sins, q)+'</div>' : '')
+      + '</div>';
+  });
+  out.innerHTML = html;
+}
+
+const input = document.getElementById("q");
+const clearBtn = document.getElementById("clear");
+function update(){
+  const q = input.value.trim();
+  clearBtn.style.display = q ? "block" : "none";
+  render(q, search(q));
+}
+input.addEventListener("input", update);
+clearBtn.addEventListener("click", () => { input.value=""; update(); input.focus(); });
+render("", []);
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
